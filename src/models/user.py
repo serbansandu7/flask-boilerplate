@@ -1,14 +1,67 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+import datetime
+from sqlalchemy import Column, String, Integer, Boolean, DateTime
 
-from .base import Base
+from src.adapters.user import UserAdapter
+from src.models.base import Base
+from src.utils.exceptions import InvalidCredentials
+from src.utils.validators import validate_user_body
 
 
-class User(Base):
-    __tablename__ = 'users'
+class User(Base, UserAdapter):
+    __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
-    email = Column(String(500))
-    role = Column(String(500))
-    password = Column(String(500))
-    user_full_name = Column(String(500))
-    location = Column(Integer, ForeignKey('locations.id'))
+    email = Column(String(100), unique=True, nullable=False)
+    first_name = Column(String(100))
+    last_name = Column(String(100))
+    phone = Column(String(15))
+    admin = Column(Boolean, default=False)
+    active = Column(Boolean, default=True)
+    password = Column(String(500), nullable=False)
+    salt = Column(String(500))
+    session = Column(String(1024))
+    session_create_time = Column(DateTime)
+
+    @classmethod
+    def get_users(cls, context):
+        results = context.query(cls).all()
+        return cls.to_json(results)
+
+    @classmethod
+    def login(cls, context, body):
+        user = cls.get_user_by_email(context, body.get("email"))
+        if not user:
+            raise InvalidCredentials("User not found", status=400)
+
+        password, _ = cls.generate_password(body.get("password"), user.salt.encode('utf-8'))
+        if password != user.password:
+            raise InvalidCredentials("Invalid credentials", status=400)
+        session_token = cls.generate_session()
+        user.session = session_token
+        user.session_create_time = datetime.datetime.now()
+        context.commit()
+        return session_token
+
+    @classmethod
+    def logout(cls, context, session_id):
+        user = cls.get_user_by_session(context, session_id)
+        if not user:
+            raise InvalidCredentials("User not found", status=400)
+        user.session = None
+        context.commit()
+
+    @classmethod
+    def get_user_by_email(cls, context, email):
+        return context.query(cls).filter_by(email=email).first()
+
+    @classmethod
+    def get_user_by_session(cls, context, session):
+        return context.query(cls).filter_by(session=session).first()
+
+    @classmethod
+    def create_user(cls, context, body):
+        validate_user_body(body)
+        user = User()
+        user.to_object(body)
+        context.add(user)
+        context.commit()

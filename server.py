@@ -3,30 +3,35 @@
 """
 
 from flask import Flask
-from flask_cors import CORS
 
-import settings
-from database_management import init_database_connection, build_connection_string
-from src.blueprints.user_blueprint import user_blueprint
+from database_management import build_sqlite_connection_string, init_database_connection
+from src.endpoints.login import login_bp
+from src.endpoints.user import user_bp
 
 
 def configure_app(application):
-
-    connection_string = build_connection_string(
-        settings.DB_HOST, settings.DB_USER, settings.DB_PASSWORD, settings.DB_PORT, settings.DB_NAME
-    )
-    application.config['SQLALCHEMY_DATABASE_URI'] = connection_string
+    database_file_path = 'fii_practic_database'
+    connection_string = build_sqlite_connection_string(database_file_path)
     init_database_connection(connection_string)
 
 
 app = Flask(__name__)
-CORS(app)
 configure_app(app)
-app.register_blueprint(user_blueprint)
+app.register_blueprint(user_bp)
+app.register_blueprint(login_bp)
+
+
+@app.route('/status', methods=['GET'])
+def get_status():
+    return 'The server is up and running!'
 
 
 def main():
     """
         Fii practic - Server main
     """
-    app.run(threaded=True)
+    app.run(debug=True)
+
+
+if __name__ == '__main__':
+    main()
