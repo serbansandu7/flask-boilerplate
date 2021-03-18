@@ -3,7 +3,7 @@ from sqlalchemy import Column, String, Integer, Boolean, DateTime
 
 from src.adapters.user import UserAdapter
 from src.models.base import Base
-from src.utils.exceptions import InvalidCredentials
+from src.utils.exceptions import InvalidCredentials, Conflict
 from src.utils.validators import validate_user_body
 
 
@@ -59,9 +59,32 @@ class User(Base, UserAdapter):
         return context.query(cls).filter_by(session=session).first()
 
     @classmethod
+    def get_user_by_id(cls, context, user_id):
+        return context.query(cls).filter_by(id=user_id).first()
+
+    @classmethod
     def create_user(cls, context, body):
         validate_user_body(body)
+        if cls.get_user_by_email(context, body.get("email")):
+            raise Conflict("This email address is already used", 409)
         user = User()
         user.to_object(body)
         context.add(user)
+        context.commit()
+
+    @classmethod
+    def update_user(cls, context, body, user_id):
+        validate_user_body(body)
+        user = cls.get_user_by_id(context, user_id)
+        if not user:
+            raise Conflict("The user you are trying to update does not exist", 404)
+        user.to_object(body)
+        context.commit()
+
+    @classmethod
+    def deactivate_user(cls, context, user_id):
+        user = cls.get_user_by_id(context, user_id)
+        if not user:
+            raise Conflict("The user you are trying to update does not exist", 404)
+        user.active = False
         context.commit()
