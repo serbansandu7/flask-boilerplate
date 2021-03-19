@@ -4,3 +4,4 @@ sqlalchemy==1.2.12
 sqlalchemy-utils==0.33.6
 bcrypt==3.1.6
 numpy==1.16.4
+sendgrid=6.6.0
