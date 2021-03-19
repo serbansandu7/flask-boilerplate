@@ -3,11 +3,13 @@ from sqlalchemy import Column, String, Integer, Boolean, DateTime
 
 from src.adapters.user import UserAdapter
 from src.models.base import Base
+from src.models.crud import Crud
 from src.utils.exceptions import InvalidCredentials, Conflict
 from src.utils.validators import validate_user_body
 
 
-class User(Base, UserAdapter):
+class User(Base, Crud, UserAdapter):
+    search_fields = ['email', 'first_name', 'last_name']
     __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
@@ -23,9 +25,17 @@ class User(Base, UserAdapter):
     session_create_time = Column(DateTime)
 
     @classmethod
-    def get_users(cls, context):
-        results = context.query(cls).all()
-        return cls.to_json(results)
+    def get_search_fields(cls):
+        return cls.search_fields
+
+    @classmethod
+    def get_users(cls, context, search, page, limit):
+        query = context.query(cls)
+        query = cls.add_search(query, search)
+        total = query.count()
+        query = cls.add_pagination(query, page, limit)
+        results = query.all()
+        return cls.to_json(results, total)
 
     @classmethod
     def login(cls, context, body):

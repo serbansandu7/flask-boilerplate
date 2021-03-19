@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timedelta
 from flask import Response, request
 from database_management import get_database_session
+from src.models.actionLog import ActionLog
 from src.models.user import User
 from src.utils.exceptions import Unauthorized
 
@@ -75,3 +76,18 @@ def is_admin_or_self(func):
             raise Unauthorized("You are not allowed to access this.", status=401)
         return func(*args, **kwargs)
     return wrapper
+
+
+def log_action(action):
+    def inner(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            res = func(*args, **kwargs)
+            context = kwargs.get("context") or get_database_session()
+            user_id = kwargs["user"].id
+            log = ActionLog(user_id=user_id, action=action, body=json.dumps(request.json))
+            context.add(log)
+            context.commit()
+            return res
+        return wrapper
+    return inner

@@ -7,17 +7,20 @@ from numpy import random
 
 class UserAdapter:
     @staticmethod
-    def to_json(results):
-        return [
-            {
-                'id': result.id,
-                'first_name': result.first_name,
-                'last_name': result.last_name,
-                'email': result.email,
-                'phone': result.phone,
-                'active': result.active
-            } for result in results
-        ]
+    def to_json(results, total):
+        return {
+            "items": [
+                {
+                    'id': result.id,
+                    'first_name': result.first_name,
+                    'last_name': result.last_name,
+                    'email': result.email,
+                    'phone': result.phone,
+                    'active': result.active
+                } for result in results
+            ],
+            "total": total
+        }
 
     def to_object(self, body):
         for key, value in body.items():

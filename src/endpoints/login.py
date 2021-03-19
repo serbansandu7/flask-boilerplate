@@ -4,7 +4,7 @@ from flask import Blueprint, Response, request
 from src.models.user import User
 from src.utils.decorators import session, http_handling
 
-login_bp = Blueprint('login', __name__, template_folder='templates', url_prefix='/')
+login_bp = Blueprint('login', __name__, url_prefix='/')
 
 
 @login_bp.route('login', methods=['POST'])

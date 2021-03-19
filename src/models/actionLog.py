@@ -1,6 +1,8 @@
 from sqlalchemy import Column, String, Text, Integer, ForeignKey, DateTime
 from sqlalchemy.sql import func
+
 from src.models.base import Base
+
 
 class ActionLog(Base):
     __tablename__ = 'action_log'
