@@ -1,9 +1,12 @@
 import datetime
 from sqlalchemy import Column, String, Integer, Boolean, DateTime
 
+import settings
 from src.adapters.user import UserAdapter
 from src.models.base import Base
 from src.models.crud import Crud
+from src.models.email_token import EmailToken
+from src.services.email import EmailService
 from src.utils.exceptions import InvalidCredentials, Conflict
 from src.utils.validators import validate_user_body
 
@@ -79,8 +82,17 @@ class User(Base, Crud, UserAdapter):
             raise Conflict("This email address is already used", 409)
         user = User()
         user.to_object(body)
+        user.active = False
         context.add(user)
+        context.flush()
+
+        email_token_entry = EmailToken(user_id=user.id)
+        email_token_entry.generate_email_token()
+        context.add(email_token_entry)
         context.commit()
+
+        es = EmailService(settings.SENDGRID_API_KEY, settings.EMAIL_ADDRESS)
+        es.send_confirmation_email(user, email_token_entry.token)
 
     @classmethod
     def update_user(cls, context, body, user_id):
@@ -98,3 +110,10 @@ class User(Base, Crud, UserAdapter):
             raise Conflict("The user you are trying to update does not exist", 404)
         user.active = False
         context.commit()
+
+    @classmethod
+    def activate_user(cls, context, user_id):
+        user = context.query(User).filter_by(id=user_id).first()
+        user.active = True
+        context.commit()
+

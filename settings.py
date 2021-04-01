@@ -3,3 +3,5 @@ import os
 SERVER_PORT = os.getenv('SERVER_PORT')
 SERVER_HOST = os.getenv('SERVER_HOST')
 ENVIRONMENT = os.getenv('ENVIRONMENT')
+EMAIL_ADDRESS = os.getenv('EMAIL_ADDRESS')
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')

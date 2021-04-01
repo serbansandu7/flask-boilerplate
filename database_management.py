@@ -21,6 +21,7 @@ def create_dependent_tables(engine):
     from src.models.company import Company
     from src.models.user_company import UserCompany
     from src.models.actionLog import ActionLog
+    from src.models.email_token import EmailToken
     Base.metadata.create_all(engine)
 
 
