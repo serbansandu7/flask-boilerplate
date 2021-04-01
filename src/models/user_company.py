@@ -21,15 +21,18 @@ class UserCompany(Base, UserCompanyAdapter):
     def get_company_by_id(cls, context, company_id):
         return context.query(cls).filter_by(id=company_id).first()
 
-    def add_user_company_entry(self, context, company_id, user_id):
+    @classmethod
+    def add_user_company_entry(cls, context, company_id, user_id):
         uc = UserCompany()
         uc.user_id = user_id
         uc.company_id = company_id
         context.add(uc)
         context.commit()
 
-    def assign_to_company(self, context, company_id, body):
-        body['company'] = company_id
+    @classmethod
+    def assign_to_company(cls, context, company_id, body):
+        # TODO: Add handling for managing the existing mappings
+        body['company_id'] = company_id
         validate_company_assignment(body)
-        self.add_user_company_entry(context, company_id, body['user_id'])
+        cls.add_user_company_entry(context, company_id, body['user_id'])
         context.commit()

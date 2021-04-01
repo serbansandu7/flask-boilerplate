@@ -30,7 +30,6 @@ def http_handling(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            import pudb;pudb.set_trace()
             return func(*args, **kwargs)
         except Exception as e:
             logger.error(e)

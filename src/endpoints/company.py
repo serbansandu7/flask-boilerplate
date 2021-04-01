@@ -52,17 +52,17 @@ def delete_company(context, company_id):
     return Response(status=200, response="Resource deleted")
 
 
-@company_bp.route('/<int:company_id>/assign/', methods=['PATCH'])
+@company_bp.route('/<int:company_id>/users/', methods=['POST'])
 @http_handling
 @session
 def company_assign(context, company_id):
-    UserCompany().assign_to_company(context, company_id, request.json)
-    return Response(status=200, response="Resource deleted")
+    UserCompany.assign_to_company(context, company_id, request.json)
+    return Response(status=200, response="Resource created")
 
 
 @company_bp.route('/<int:company_id>/users', methods=['GET'])
 @http_handling
 @session
-def get_companies(context, company_id):
+def get_company_users(context, company_id):
     companies = UserCompany.get_company_users(context, company_id)
     return Response(status=200, response=json.dumps(companies))
