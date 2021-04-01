@@ -1,8 +1,9 @@
 """
     The Python server entry point.
 """
-
 from flask import Flask
+
+import settings
 
 from database_management import build_sqlite_connection_string, init_database_connection
 from src.endpoints.company import company_bp
@@ -32,7 +33,8 @@ def main():
     """
         Fii practic - Server main
     """
-    app.run(debug=True)
+    debug = settings.ENVIRONMENT == 'DEV'
+    app.run(debug=debug, port=settings.SERVER_PORT)
 
 
 if __name__ == '__main__':
