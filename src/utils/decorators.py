@@ -30,6 +30,7 @@ def http_handling(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
+            import pudb;pudb.set_trace()
             return func(*args, **kwargs)
         except Exception as e:
             logger.error(e)
@@ -46,7 +47,7 @@ def is_authorized(func):
         user = User.get_user_by_session(context, session_id)
         if not user:
             raise Unauthorized("You are not allowed to access this.", status=401)
-        if user.session_create_time - datetime.now() > timedelta(minutes=30):
+        if not user.session_create_time or user.session_create_time - datetime.now() > timedelta(minutes=30):
             raise Unauthorized("You are not allowed to access this.", status=401)
 
         kwargs["user"] = user

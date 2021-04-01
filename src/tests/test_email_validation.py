@@ -1,3 +1,5 @@
+import pytest
+
 from src.utils.validators import validate_email
 
 
@@ -5,20 +7,12 @@ class TestUserValidation:
 
     def test_user_email_validation_success(self):
         email = 'serban.sandu@gmail.com'
-        valid = True
-        try:
-            validate_email(email)
-        except Exception:
-            valid = False
-
-        assert valid
+        validate_email(email)
+        assert True
 
     def test_user_email_validation_failed(self):
         email = 'serban.sandu@gmail.comcxzc+'
-        valid = True
-        try:
+        with pytest.raises(Exception) as e:
             validate_email(email)
-        except Exception:
-            valid = False
 
-        assert not valid
+        print(e)

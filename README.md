@@ -1,0 +1,1 @@
+pytest --cov=src --cov-report term:skip-covered --cov-report term-missing src/tests/  
